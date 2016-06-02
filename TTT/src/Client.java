@@ -15,10 +15,14 @@ import javax.swing.*;
 public class Client extends JFrame implements ActionListener {
 
 	private boolean begin = false;
-
+	static ObjectOutputStream output;
+	static ObjectInputStream input;
+	static PrintWriter out;
+	static BufferedReader in;
+	static Socket socket;
 	static String name = "";
 
-	private JFrame frame;
+	static JFrame frame;
 	private Container panel;
 	private JButton B1;
 	private JButton B2;
@@ -83,17 +87,16 @@ public class Client extends JFrame implements ActionListener {
 
 	static class TicTacToeThread implements Runnable {
 
-		private ObjectOutputStream output;
-		private ObjectInputStream input;
-		private Socket socket;
+
 
 		@Override
 		public void run() {
-			try {
-				socket = new Socket("localhost", 3001);
-				output = new ObjectOutputStream(socket.getOutputStream());
-				input = new ObjectInputStream(socket.getInputStream());
-
+				try {
+					socket = new Socket("localhost", 3001);
+					output = new ObjectOutputStream(socket.getOutputStream());
+					input = new ObjectInputStream(socket.getInputStream());
+					
+					
 				while (true) {
 					String inputString = input.readUTF();
 					System.out.println(inputString);
@@ -101,20 +104,14 @@ public class Client extends JFrame implements ActionListener {
 					if (inputString.startsWith("Player")) {
 						name = inputString.substring(7);
 						System.out.println(name);
+						frame.setTitle("Welcome to Tic Tac Toe: Player "+ name);
 					}
 				}
-
-			} catch (IOException EOF) {
-				System.out.println("EOF: " + EOF.getMessage());
-
-			} finally {
-				try {
-					socket.close();
+				
 				} catch (IOException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}
-
 		}
 
 	}
@@ -122,36 +119,86 @@ public class Client extends JFrame implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JButton clicked = (JButton) e.getSource();
-		
-		if(clicked == B1){
-			B1.setText(name);
-			B1.setEnabled(false);
-		}else if(clicked == B2){
-			B2.setText(name);
-			B2.setEnabled(false);
-		}else if(clicked == B3){
-			B3.setText(name);
-			B3.setEnabled(false);
-		}else if(clicked == B4){
-			B4.setText(name);
-			B4.setEnabled(false);
-		}else if(clicked == B5){
-			B5.setText(name);
-			B5.setEnabled(false);
-		}else if(clicked == B6){
-			B6.setText(name);
-			B6.setEnabled(false);
-		}else if(clicked == B7){
-			B7.setText(name);
-			B7.setEnabled(false);
-		}else if(clicked == B8){
-			B8.setText(name);
-			B8.setEnabled(false);
-		}else if(clicked == B9){
-			B9.setText(name);
-			B9.setEnabled(false);
+		try {
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			
+			out = new PrintWriter(socket.getOutputStream(), true);
+			while (true){
+			if(clicked == B1){
+				out.println("1 " + name + " " + "B1");
+			}else if(clicked == B2){
+				out.println("2" + name + " " + "B1");
+			}else if(clicked == B3){
+				out.println("3" + name + " " + "B1");
+			}else if(clicked == B4){
+				out.println("4" + name + " " + "B1");
+			}else if(clicked == B5){
+				out.println("5" + name + " " + "B1");
+			}else if(clicked == B6){
+				out.println("6" + name + " " + "B1");
+			}else if(clicked == B7){
+				out.println("7" + name + " " + "B1");
+			}else if(clicked == B8){
+				out.println("8" + name + " " + "B1");
+			}else if(clicked == B9){
+				out.println("9" + name + " " + "B1");
+			}
+			
+			String command = in.readLine();
+			String button = command.substring(2);
+			String currentPlayer = command.substring(0, 1);
+			
+			if(command.contains("1")){
+				B1.setText(currentPlayer);
+				B1.setEnabled(false);
+			}else if(command.contains("2")){
+				B2.setText(currentPlayer);
+				B2.setEnabled(false);
+			}else if(command.contains("3")){
+				B3.setText(currentPlayer);
+				B3.setEnabled(false);
+			}else if(command.contains("4")){
+				B4.setText(currentPlayer);
+				B4.setEnabled(false);
+			}else if(command.contains("5")){
+				B5.setText(currentPlayer);
+				B5.setEnabled(false);
+			}else if(command.contains("6")){
+				B6.setText(currentPlayer);
+				B6.setEnabled(false);
+			}else if(command.contains("7")){
+				B7.setText(currentPlayer);
+				B7.setEnabled(false);
+			}else if(command.contains("8")){
+				B8.setText(currentPlayer);
+				B8.setEnabled(false);
+			}else if(command.contains("9")){
+				B9.setText(currentPlayer);
+				B9.setEnabled(false);
+			}
+				
+				
+			}
+			
+			
+			
+			
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}finally{
+			try {
+				socket.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		
+		
+		
+		
+		
+	
 		
 		
 	}
