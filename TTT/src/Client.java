@@ -126,7 +126,30 @@ public class Client extends JFrame implements ActionListener {
 		if(clicked == B1){
 			B1.setText(name);
 			B1.setEnabled(false);
-			
+		}else if(clicked == B2){
+			B2.setText(name);
+			B2.setEnabled(false);
+		}else if(clicked == B3){
+			B3.setText(name);
+			B3.setEnabled(false);
+		}else if(clicked == B4){
+			B4.setText(name);
+			B4.setEnabled(false);
+		}else if(clicked == B5){
+			B5.setText(name);
+			B5.setEnabled(false);
+		}else if(clicked == B6){
+			B6.setText(name);
+			B6.setEnabled(false);
+		}else if(clicked == B7){
+			B7.setText(name);
+			B7.setEnabled(false);
+		}else if(clicked == B8){
+			B8.setText(name);
+			B8.setEnabled(false);
+		}else if(clicked == B9){
+			B9.setText(name);
+			B9.setEnabled(false);
 		}
 		
 		
