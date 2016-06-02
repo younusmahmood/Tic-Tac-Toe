@@ -1,27 +1,23 @@
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
 import javax.swing.*;
 
-
-
-
-
 @SuppressWarnings("serial")
-public class Client extends JFrame implements Runnable {
-	
+public class Client extends JFrame implements ActionListener {
+
 	private boolean begin = false;
 
-	private ObjectOutputStream output;
-	private ObjectInputStream input;
-	private Socket socket;
-	String name;
+	static String name = "";
 
-	
 	private JFrame frame;
 	private Container panel;
 	private JButton B1;
@@ -33,24 +29,32 @@ public class Client extends JFrame implements Runnable {
 	private JButton B7;
 	private JButton B8;
 	private JButton B9;
-	private JTextArea PlayerRole;
-	
-	
-	public Client(){
-		frame = new JFrame("Tic Tac Toe");
-		B1 = new JButton("X");
-		B2 = new JButton("X");
-		B3 = new JButton("X");
+
+	public Client() {
+		frame = new JFrame("Tic Tac Toe " + name);
+		B1 = new JButton("");
+		B2 = new JButton("");
+		B3 = new JButton("");
 		B4 = new JButton("");
 		B5 = new JButton("");
 		B6 = new JButton("");
 		B7 = new JButton("");
 		B8 = new JButton("");
 		B9 = new JButton("");
-		
+
+		B1.addActionListener(this);
+		B2.addActionListener(this);
+		B3.addActionListener(this);
+		B4.addActionListener(this);
+		B5.addActionListener(this);
+		B6.addActionListener(this);
+		B7.addActionListener(this);
+		B8.addActionListener(this);
+		B9.addActionListener(this);
+
 		panel = getContentPane();
-		panel.setLayout(new GridLayout(3,3));
-		
+		panel.setLayout(new GridLayout(3, 3, 2, 2));
+		// role = new JLabel(name);
 		panel.add(B1);
 		panel.add(B2);
 		panel.add(B3);
@@ -60,53 +64,73 @@ public class Client extends JFrame implements Runnable {
 		panel.add(B7);
 		panel.add(B8);
 		panel.add(B9);
-		
-		PlayerRole = new JTextArea(0,30);
-		
+		// panel.add(role);
+
 		frame.add(panel);
-		
 		frame.setSize(875, 550);
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
-		frame.setResizable(false);
-		
-	}
-	
-	
-	
-	
-	@SuppressWarnings("unchecked")
-	public void run() {
 
-		try {
-			socket = new Socket("localhost", 3001);
-			output = new ObjectOutputStream(socket.getOutputStream());
-			input = new ObjectInputStream(socket.getInputStream());
-		
-
-			while (true) {
-				String inputString = input.readUTF();
-				System.out.println(inputString);
-				 PlayerRole.setText(inputString);
-			}
-
-		} catch (IOException EOF) {
-			System.out.println("EOF: " + EOF.getMessage());
-
-		} finally {
-			try {
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	public static void main(String[] args) {
-		Client t1 = new Client();
+		TicTacToeThread client = new TicTacToeThread();
+
+		new Thread(client).start();
+		new Client();
+	}
+
+	static class TicTacToeThread implements Runnable {
+
+		private ObjectOutputStream output;
+		private ObjectInputStream input;
+		private Socket socket;
+
+		@Override
+		public void run() {
+			try {
+				socket = new Socket("localhost", 3001);
+				output = new ObjectOutputStream(socket.getOutputStream());
+				input = new ObjectInputStream(socket.getInputStream());
+
+				while (true) {
+					String inputString = input.readUTF();
+					System.out.println(inputString);
+
+					if (inputString.startsWith("Player")) {
+						name = inputString.substring(7);
+						System.out.println(name);
+					}
+				}
+
+			} catch (IOException EOF) {
+				System.out.println("EOF: " + EOF.getMessage());
+
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		JButton clicked = (JButton) e.getSource();
 		
-		new Thread(t1).start();
+		if(clicked == B1){
+			B1.setText(name);
+			B1.setEnabled(false);
+			
+		}
+		
+		
+		
 	}
 
 }
