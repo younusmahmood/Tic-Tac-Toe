@@ -106,6 +106,7 @@ public class Client extends JFrame implements ActionListener {
 						System.out.println(name);
 						frame.setTitle("Welcome to Tic Tac Toe: Player "+ name);
 					}
+					
 				}
 				
 				} catch (IOException e) {
