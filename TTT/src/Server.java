@@ -34,7 +34,6 @@ public class Server implements Runnable {
 	public Server(Socket socket, String name) {
 		threadName = name;
 		threadSocket = socket;
-
 	}
 
 	public void run() {
