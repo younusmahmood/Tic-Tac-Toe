@@ -20,15 +20,9 @@ public class Server implements Runnable {
 	char X = 'X';
 	char O = 'O';
 
-	private int p1Score;
-	private int p2Score;
-
-	private static String winner = "Player ";
-
 	public Server(Socket socket, String name) {
 		threadName = name;
 		threadSocket = socket;
-
 	}
 
 	public void run() {
@@ -37,9 +31,7 @@ public class Server implements Runnable {
 			input = new ObjectInputStream(threadSocket.getInputStream());
 			output.writeUTF("Welcome to Server 3001!  :  " + new Date());
 			output.flush();
-			while (notEnoughPlayers) // wait for 2 clients to connect then
-										// assign player roles
-			{
+			while (notEnoughPlayers) {
 				try {
 					output.writeUTF("Please stand by for more players . . . ");
 					output.flush();
@@ -58,49 +50,29 @@ public class Server implements Runnable {
 			}
 
 			output.flush();
-			connections.get(0).output.writeUTF("\nBegin round ");
-			output.flush();
-
-			// listen for Player to send their move and then forward to the
-			// opponent
-
+			
 			while (true) {
 				// This will wait until a line of text has been sent
 				String chatInput = input.readUTF();
-//				System.out.println(threadName + " says: " + chatInput);
-				
+				// System.out.println(threadName + " says: " + chatInput);
+
 				String whosTurn = chatInput.substring(3);
 				String buttonPressed = chatInput.substring(0, 2);
 
-				//System.out.println(whosTurn + " " + buttonPressed);
+				// System.out.println(whosTurn + " " + buttonPressed);
 
-				connections.get(0).output.writeUTF("Set " + whosTurn + " " + buttonPressed);
-				connections.get(1).output.writeUTF("Set " + whosTurn + " " + buttonPressed);
+				connections.get(0).output.writeUTF("Set " + whosTurn + " "
+						+ buttonPressed);
+				connections.get(1).output.writeUTF("Set " + whosTurn + " "
+						+ buttonPressed);
 				connections.get(0).output.flush();
 				connections.get(1).output.flush();
-				
+
 			}
-
-			// while (true)
-			// {
-			// String inputString = input.readUTF();
-			// System.out.println(inputString);
-			// String[] newStr = inputString.split(" ");
-			// System.out.println(newStr[0]);
-			// Thread.sleep(2500);
-			// }
-
-			// thread.sleep(15000);
-			// output.writeUTF(winner + " ");
-			// output.flush();
 
 		} catch (IOException exception) {
 			System.out.println("Uh oh, error: " + exception);
 		}
-		// } catch (InterruptedException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
 	}
 
 	public static void main(String args[]) {
@@ -118,7 +90,6 @@ public class Server implements Runnable {
 				Socket remote_client = serverSocket.accept();
 				ip = remote_client.getInetAddress();
 				System.out.println(ip + " has connected!");
-				
 
 				// Create a new custom thread to handle the connection
 				Server clientThread = new Server(remote_client, ("Player " + x
