@@ -67,6 +67,7 @@ public class Server implements Runnable {
 			while (true) {
 				// This will wait until a line of text has been sent
 				String chatInput = input.readUTF();
+//				System.out.println(threadName + " says: " + chatInput);
 				
 				String whosTurn = chatInput.substring(3);
 				String buttonPressed = chatInput.substring(0, 2);
