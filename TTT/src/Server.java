@@ -13,16 +13,10 @@ public class Server implements Runnable {
 	private Socket threadSocket;
 	private ObjectOutputStream output;
 	private ObjectInputStream input;
-	private ObjectOutputStream sendBoard;
-	PrintWriter messageToSend;
-	BufferedReader messageReceived;
-	Boolean player = true;
-	String currentPlayer = "X";
-	String buttonClicked = "";
 
 	static List<Server> connections = new ArrayList<Server>();
 
-	String[] gameBoard = { null, null, null, null, null, null, null, null, null };
+	String[] gameBoard = { ".", ".", ".", ".", ".", ".", ".", ".", "." };
 	char X = 'X';
 	char O = 'O';
 
@@ -34,6 +28,7 @@ public class Server implements Runnable {
 	public Server(Socket socket, String name) {
 		threadName = name;
 		threadSocket = socket;
+
 	}
 
 	public void run() {
@@ -41,13 +36,10 @@ public class Server implements Runnable {
 			output = new ObjectOutputStream(threadSocket.getOutputStream());
 			input = new ObjectInputStream(threadSocket.getInputStream());
 			output.writeUTF("Welcome to Server 3001!  :  " + new Date());
-			messageToSend = new PrintWriter(threadSocket.getOutputStream(),
-					true);
-			messageReceived = new BufferedReader(new InputStreamReader(
-					threadSocket.getInputStream()));
-
 			output.flush();
-			while (notEnoughPlayers) {
+			while (notEnoughPlayers) // wait for 2 clients to connect then
+										// assign player roles
+			{
 				try {
 					output.writeUTF("Please stand by for more players . . . ");
 					output.flush();
@@ -66,61 +58,73 @@ public class Server implements Runnable {
 			}
 
 			output.flush();
-			output.writeUTF("\nBegin game ");
+			connections.get(0).output.writeUTF("\nBegin round ");
 			output.flush();
 
+			// listen for Player to send their move and then forward to the
+			// opponent
+
 			while (true) {
-				String message = messageReceived.readLine();
-				buttonClicked = message.substring(4);
-				// System.out.println(buttonClicked);
-				if (message.startsWith("1")) {
-					gameBoard[0] = currentPlayer;
-				} else if (message.startsWith("2")) {
-					gameBoard[1] = currentPlayer;
-				} else if (message.startsWith("3")) {
-					gameBoard[2] = currentPlayer;
-				} else if (message.startsWith("4")) {
-					gameBoard[3] = currentPlayer;
-				} else if (message.startsWith("5")) {
-					gameBoard[4] = currentPlayer;
-				} else if (message.startsWith("6")) {
-					gameBoard[5] = currentPlayer;
-				} else if (message.startsWith("7")) {
-					gameBoard[6] = currentPlayer;
-				} else if (message.startsWith("8")) {
-					gameBoard[7] = currentPlayer;
-				} else if (message.startsWith("9")) {
-					gameBoard[8] = currentPlayer;
-				}
+				// This will wait until a line of text has been sent
+				String chatInput = input.readUTF();
+				
+				String whosTurn = chatInput.substring(3);
+				String buttonPressed = chatInput.substring(0, 2);
 
-				messageToSend.println(currentPlayer + " " + buttonClicked);
+				//System.out.println(whosTurn + " " + buttonPressed);
 
+				connections.get(0).output.writeUTF("Set " + whosTurn + " " + buttonPressed);
+				connections.get(1).output.writeUTF("Set " + whosTurn + " " + buttonPressed);
+				connections.get(0).output.flush();
+				connections.get(1).output.flush();
+				
 			}
+
+			// while (true)
+			// {
+			// String inputString = input.readUTF();
+			// System.out.println(inputString);
+			// String[] newStr = inputString.split(" ");
+			// System.out.println(newStr[0]);
+			// Thread.sleep(2500);
+			// }
+
+			// thread.sleep(15000);
+			// output.writeUTF(winner + " ");
+			// output.flush();
 
 		} catch (IOException exception) {
 			System.out.println("Uh oh, error: " + exception);
 		}
+		// } catch (InterruptedException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 	}
 
 	public static void main(String args[]) {
 		try {
-			@SuppressWarnings("resource")
 			ServerSocket serverSocket = new ServerSocket(3001);
 
 			System.out.println("Server 3001 started at: " + new Date());
 
 			InetAddress ip = null;
 			int x = 1;
+			// loop that accepts and starts thread for each connection
 			while (connections.size() != 2) {
 
+				// Wait for a client to connect, then accept that connection
 				Socket remote_client = serverSocket.accept();
 				ip = remote_client.getInetAddress();
 				System.out.println(ip + " has connected!");
+				
 
+				// Create a new custom thread to handle the connection
 				Server clientThread = new Server(remote_client, ("Player " + x
 						+ " (connected at: " + ip + ")"));
 				x++;
 
+				// Start the thread for that remote client
 				clientThread.start();
 
 				connections.add(clientThread);
