@@ -19,11 +19,6 @@ import javax.swing.JTextArea;
 @SuppressWarnings("serial")
 public class Client extends JPanel implements ActionListener {
 
-	private boolean begin = false;
-
-	// only one of these values will be set to true in each thread
-	// ie. player X's thread will have ImX set to true and ImO will be set to
-	// false (vice versa in player O's thread)
 	boolean btn = false;
 
 	private boolean gameOver = false;
@@ -33,7 +28,6 @@ public class Client extends JPanel implements ActionListener {
 	private static ObjectOutputStream output;
 	private static ObjectInputStream input;
 	private Socket socket;
-	private static int port = 3001;
 
 	String name;
 	static String buttonPressed = "";
@@ -179,16 +173,13 @@ public class Client extends JPanel implements ActionListener {
 
 					while (true) {
 						Thread.sleep(2000);
-						while (buttonPressed.equals(""))
-							;
+						while (buttonPressed.equals(""));
 						if (move == true) {
 							whosTurn = "X";
 						} else {
 							whosTurn = "O";
 						}
-						// System.out.println("button equals: " +
-						// buttonPressed);
-						// System.out.println("whosTurn equals: " + whosTurn);
+						
 						output.writeUTF(buttonPressed + " " + whosTurn);
 						output.flush();
 
@@ -241,7 +232,6 @@ public class Client extends JPanel implements ActionListener {
 							move = !move;
 						}
 						
-						repaintButtons();
 						
 					}
 
@@ -300,50 +290,11 @@ public class Client extends JPanel implements ActionListener {
 			B9.setEnabled(false);
 
 		}
-		
-		public void repaintButtons() {
-
-			B1.revalidate();
-			B1.repaint();
-			
-			B2.revalidate();
-			B2.repaint();
-
-			B3.revalidate();
-			B3.repaint();
-			
-			B4.revalidate();
-			B4.repaint();
-
-			B5.revalidate();
-			B5.repaint();
-
-			B6.revalidate();
-			B6.repaint();
-			
-			B7.revalidate();
-			B7.repaint();
-			
-			B8.revalidate();
-			B8.repaint();
-			
-			B9.revalidate();
-			B9.repaint();
-		}
-
 
 	}
 
 	public static void playGame() throws Exception {
 
-	}
-
-	private boolean wantsToPlayAgain() {
-		int response = JOptionPane.showConfirmDialog(frame,
-				"Want to play again?", "Tic Tac Toe is Fun Fun Fun",
-				JOptionPane.YES_NO_OPTION);
-		frame.dispose();
-		return response == JOptionPane.YES_OPTION;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -357,4 +308,4 @@ public class Client extends JPanel implements ActionListener {
 		// playGame();
 	}
 
-} // end Client class
+}
