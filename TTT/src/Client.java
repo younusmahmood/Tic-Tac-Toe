@@ -1,5 +1,7 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
@@ -19,27 +21,31 @@ import javax.swing.JTextArea;
 @SuppressWarnings("serial")
 public class Client extends JPanel implements ActionListener {
 
-	boolean btn = false;
-
-	private boolean gameOver = false;
+	private boolean readyToPlay = false;
 	private static String whosTurn = "X"; // indicate who's turn it is
-	private static boolean move = true;
 
 	private static ObjectOutputStream output;
 	private static ObjectInputStream input;
 	private Socket socket;
+	String winner;
+	int xScore;
+	int oScore;
 
 	String name;
-	static String buttonPressed = "";
-	boolean ImPlayer1 = false;
-	boolean ImPlayer2 = false;
-	boolean commandReceived = false;
-	boolean nextRound = false;
+	static String buttonPressed = ""; // 
+	boolean ImPlayer1 = false; //will be set to true in whichever thread belongs to player 1 and false in the other thread
+	boolean ImPlayer2 = false; //will be set to true in whichever thread belongs to player 1 and false in the other thread
+	boolean commandReceived = false; //threads will wait for a command from server
 
 	private static JFrame frame;
 	private JButton connectBtn = new JButton("Connect to Opponent");
+	private JButton helpBtn = new JButton("Help");
+	private JButton tipBtn = new JButton("Tip");
+	private JButton quitBtn = new JButton("Quit");
+
 
 	private JTextArea playerRole = new JTextArea();
+	private JTextArea playerScore = new JTextArea();
 	private JButton B1 = new JButton("");
 	private JButton B2 = new JButton("");
 	private JButton B3 = new JButton("");
@@ -49,13 +55,16 @@ public class Client extends JPanel implements ActionListener {
 	private JButton B7 = new JButton("");
 	private JButton B8 = new JButton("");
 	private JButton B9 = new JButton("");
+	
 
 	public Client() {
 
+		// setting up layout
 		JPanel panel = new JPanel(new GridLayout(4, 3));
-
 		panel.add(connectBtn);
 		panel.add(playerRole);
+		panel.add(playerScore);
+
 		panel.add(B1);
 		panel.add(B2);
 		panel.add(B3);
@@ -65,15 +74,29 @@ public class Client extends JPanel implements ActionListener {
 		panel.add(B7);
 		panel.add(B8);
 		panel.add(B9);
+		
+		panel.add(helpBtn);
+		panel.add(quitBtn);
+		panel.add(tipBtn);
 
+		quitBtn.setBackground(Color.BLACK);
+		quitBtn.setOpaque(true);
+		helpBtn.setBackground(Color.BLACK);
+		helpBtn.setOpaque(true);
+		tipBtn.setBackground(Color.BLACK);
+		tipBtn.setOpaque(true);
+		
 		setLayout(new BorderLayout());
 		add(panel, BorderLayout.CENTER);
 		add(playerRole, BorderLayout.SOUTH);
 		add(connectBtn, BorderLayout.NORTH);
+		add(playerScore, BorderLayout.WEST);
+		
 
 		playerRole.setPreferredSize(new Dimension(300, 75));
 		playerRole.setEditable(false);
 		connectBtn.setPreferredSize(new Dimension(300, 30));
+		
 
 		connectBtn.addActionListener(this);
 		B1.addActionListener(this);
@@ -85,7 +108,7 @@ public class Client extends JPanel implements ActionListener {
 		B7.addActionListener(this);
 		B8.addActionListener(this);
 		B9.addActionListener(this);
-
+		
 		B1.setEnabled(false);
 		B2.setEnabled(false);
 		B3.setEnabled(false);
@@ -100,7 +123,6 @@ public class Client extends JPanel implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
-		btn = true;
 		playerRole.setText("");
 		if (source == connectBtn) {
 			try {
@@ -118,30 +140,46 @@ public class Client extends JPanel implements ActionListener {
 		if (source == B1) {
 			buttonPressed = "B1";
 			B1.setText(whosTurn);
+			B1.setEnabled(false);
 		} else if (source == B2) {
 			buttonPressed = "B2";
 			B2.setText(whosTurn);
+			B2.setEnabled(false);
+			
 		} else if (source == B3) {
 			buttonPressed = "B3";
 			B3.setText(whosTurn);
+			B3.setEnabled(false);
+			
 		} else if (source == B4){
 			buttonPressed = "B4";
 			B4.setText(whosTurn);
+			B4.setEnabled(false);
+			
 		} else if (source == B5) {
 			buttonPressed = "B5";
 			B5.setText(whosTurn);
+			B5.setEnabled(false);
+
 		} else if (source == B6) {
 			buttonPressed = "B6";
 			B6.setText(whosTurn);
+			B6.setEnabled(false);
+
 		} else if (source == B7) {
 			buttonPressed = "B7";
 			B7.setText(whosTurn);
+			B7.setEnabled(false);
+
 		} else if (source == B8) {
 			buttonPressed = "B8";
 			B8.setText(whosTurn);
+			B8.setEnabled(false);
+
 		} else if (source == B9) {
 			buttonPressed = "B9";
 			B9.setText(whosTurn);
+			B9.setEnabled(false);
 		}
 
 	}
@@ -150,11 +188,13 @@ public class Client extends JPanel implements ActionListener {
 
 		public void run() {
 			try {
+				// set up connections
 				socket = new Socket("localhost", 3001);
 				output = new ObjectOutputStream(socket.getOutputStream());
 				input = new ObjectInputStream(socket.getInputStream());
 
-				while (!gameOver) {
+				
+				while (!readyToPlay) {
 					String inputString = input.readUTF();
 					System.out.println(inputString);
 					playerRole.setText(inputString);
@@ -176,8 +216,7 @@ public class Client extends JPanel implements ActionListener {
 //							System.out.println("also, I'm player2 = " + ImPlayer2);
 						}
 						playerRole.setText("Welcome to Tic Tac Toe: Player " + name);
-						nextRound = true;
-						break;
+						readyToPlay = true;
 					}
 				}
 
@@ -185,6 +224,23 @@ public class Client extends JPanel implements ActionListener {
 				String chatInput;
 				String[] serverCommands = {"F", "F"};
 		        while ((chatInput = input.readUTF()) != null) {
+		        	
+		        	if(chatInput.startsWith("Game")){
+		        		winner  = chatInput.substring(18,19);
+		        		if(winner.equals("X")){
+		        			xScore++;
+		        		}else if(winner.equals("O")){
+		        			oScore++;
+		        		}
+		        		
+		        		playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
+		        		
+		        	}
+		        	
+		        	if(chatInput.startsWith("Cat's")){
+		        		playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
+		        	}
+		        	
 		        	if (chatInput.contains(" ")) {
 		        		serverCommands = chatInput.split(" ");
 		        		whosTurn = serverCommands[2];
@@ -212,6 +268,7 @@ public class Client extends JPanel implements ActionListener {
 							output.writeUTF(buttonPressed);
 							output.flush();
 							buttonPressed = "";
+							disableButtons();
 							Thread.sleep(2000);
 		        		}
 		        		else if (ImPlayer2 && commandReceived) { // not my turn: need to listen for command from server, update my board, then make a move? 
@@ -245,136 +302,13 @@ public class Client extends JPanel implements ActionListener {
 							output.writeUTF(buttonPressed);
 							output.flush();
 							buttonPressed = "";
+							disableButtons();
 							Thread.sleep(2000);
 		        		}
 
 		        	}
 		        	System.out.println("Round finished.");
 		        }
-				String turn;
-				String[] previousMove;
-
-					while (true) {
-						System.out.println("AM I IN HERE?!");
-						if (nextRound = true) {
-							nextRound = false;
-							System.out.println("It is Player " + whosTurn + "'s turn.");
-							
-							if (whosTurn.equals("X")) {
-								
-								if (ImPlayer1 == true) {
-									System.out.println("Player X's thread. Your Turn.");
-									playerRole.setText("Your Move");
-									while (buttonPressed.equals("")) {
-										Thread.sleep(2000);
-									}
-									
-									while (buttonPressed.equals(""));
-									System.out.println("Button Pressed!" + buttonPressed);
-									output.writeUTF(buttonPressed);
-									output.flush();
-									buttonPressed = "";
-									Thread.sleep(2000);
-								}
-								else if (ImPlayer2 == true) {
-									System.out.println("Player O's thread. NOT YOUR TURN.");
-							        while ((turn = input.readUTF()) != null) {
-							        	System.out.println("server says: " + turn);
-										previousMove = turn.split(" ");
-										System.out.println(previousMove[0] + " " + previousMove[1] + " " + previousMove[2]);
-										updateBoard(previousMove[1], previousMove[0]);
-										whosTurn = previousMove[2];
-										if (previousMove[3].equals("true")) nextRound = true;
-										break;
-							        }
-
-								}
-							}
-							else if (whosTurn.equals("O")) { // player 2's turn
-								
-								if (ImPlayer1 == true) {
-									System.out.println("Player X's thread. NOT YOUR TURN.");
-							        while ((turn = input.readUTF()) != null) {
-							        	System.out.println("server says: " + turn);
-										previousMove = turn.split(" ");
-										System.out.println(previousMove[0] + " " + previousMove[1] + " " + previousMove[2]);
-										updateBoard(previousMove[1], previousMove[0]);
-										whosTurn = previousMove[2];
-										if (previousMove[3].equals("true")) nextRound = true;
-										break;
-							        }
-//									Thread.sleep(2000);
-//									turn = input.readUTF();
-//									System.out.println("received from server: " + turn);
-//									previousMove = turn.split(" ");
-//									System.out.println(previousMove[0] + " " + previousMove[1] + " " + previousMove[2]);
-//									updateBoard(previousMove[1], previousMove[0]);
-//									playerRole.setText("YOUR MOVE");
-//									whosTurn = previousMove[2];
-//									if (previousMove[3].equals("true")) nextRound = true;
-//									Thread.sleep(2000);
-								}
-								else if (ImPlayer2 == true) {
-									System.out.println("Player O's thread. Your Turn.");
-									playerRole.setText("Your Move");
-									while (buttonPressed.equals("")) {
-										Thread.sleep(2000);
-									}
-									while (buttonPressed.equals(""));
-									System.out.println("Button Pressed!" + buttonPressed);
-									output.writeUTF(buttonPressed);
-									output.flush();
-									buttonPressed = "";
-									Thread.sleep(2000);
-								}
-							}
-						}
-						
-
-//						System.out.println("server returned: " + whosTurn + " "
-//								+ buttonPressed);
-
-						if (buttonPressed == "B1" && B1.getText() == "") {
-							B1.setText(whosTurn);
-							B1.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B2" && B2.getText() == "") {
-							B2.setText(whosTurn);
-							B2.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B3" && B3.getText() == "") {
-							B3.setText(whosTurn);
-							B3.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B4" && B4.getText() == "") {
-							B4.setText(whosTurn);
-							B4.setEnabled(false);
-							move = !move;	
-						} else if (buttonPressed == "B5" && B5.getText() == "") {
-							B5.setText(whosTurn);
-							B5.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B6"&& B6.getText() == "") {
-							B6.setText(whosTurn);
-							B6.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B7" && B7.getText() == "") {
-							B7.setText(whosTurn);
-							B7.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B8" && B8.getText() == "") {
-							B8.setText(whosTurn);
-							B8.setEnabled(false);
-							move = !move;
-						} else if (buttonPressed == "B9" && B9.getText() == "") {
-							B9.setText(whosTurn);
-							B9.setEnabled(false);
-							move = !move;
-						}
-
-						//repaintButtons();
-						
-					}
 
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -443,75 +377,63 @@ public class Client extends JPanel implements ActionListener {
 					B9.setText(setTextTo);
 					B9.setEnabled(false);
 				}
+
 			}
 
 		}
 		
-		/**
-		 * enable/disable buttons depending on who's turn
-		 */
-		public void enableButtons() {
-
-			B1.setEnabled(true);
-			B2.setEnabled(true);
-			B3.setEnabled(true);
-			B4.setEnabled(true);
-			B5.setEnabled(true);
-			B6.setEnabled(true);
-			B7.setEnabled(true);
-			B8.setEnabled(true);
-			B9.setEnabled(true);
-
-		}
-
-		public void disableButtons() {
-
-			B1.setEnabled(false);
-			B2.setEnabled(false);
-			B3.setEnabled(false);
-			B4.setEnabled(false);
-			B5.setEnabled(false);
-			B6.setEnabled(false);
-			B7.setEnabled(false);
-			B8.setEnabled(false);
-			B9.setEnabled(false);
-
+		private boolean playAgain(String winner) {
+			int response = JOptionPane.showConfirmDialog(frame,
+					"The winner is Player " + winner + "!!!!", "Want to rematch?",
+					JOptionPane.YES_NO_OPTION);
+			frame.dispose();
+			return response == JOptionPane.YES_OPTION;
 		}
 		
-		public void repaintButtons() {
-
-			B1.revalidate();
-			B1.repaint();
-			
-			B2.revalidate();
-			B2.repaint();
-
-			B3.revalidate();
-			B3.repaint();
-			
-			B4.revalidate();
-			B4.repaint();
-
-			B5.revalidate();
-			B5.repaint();
-
-			B6.revalidate();
-			B6.repaint();
-			
-			B7.revalidate();
-			B7.repaint();
-			
-			B8.revalidate();
-			B8.repaint();
-			
-			B9.revalidate();
-			B9.repaint();
+		public void enableButtons() {			
+			if (B1.getText().equals("")) {
+				B1.setEnabled(true);
+			} if (B2.getText().equals("")) {
+				B2.setEnabled(true);
+			} if (B3.getText().equals("")) {
+				B3.setEnabled(true);
+			} if (B4.getText().equals("")) {
+				B4.setEnabled(true);
+			} if (B5.getText().equals("")) {
+				B5.setEnabled(true);
+			} if (B6.getText().equals("")) {
+				B6.setEnabled(true);
+			} if (B7.getText().equals("")) {
+				B7.setEnabled(true);
+			} if (B8.getText().equals("")) {
+				B8.setEnabled(true);
+			} if (B9.getText().equals("")) {
+				B9.setEnabled(true);
+			}
 		}
 
-
-	}
-
-	public static void playGame() throws Exception {
+		public void disableButtons() {			
+			if (B1.getText().equals("")) {
+				B1.setEnabled(false);
+			} if (B2.getText().equals("")) {
+				B2.setEnabled(false);
+			} if (B3.getText().equals("")) {
+				B3.setEnabled(false);
+			} if (B4.getText().equals("")) {
+				B4.setEnabled(false);
+			} if (B5.getText().equals("")) {
+				B5.setEnabled(false);
+			} if (B6.getText().equals("")) {
+				B6.setEnabled(false);
+			} if (B7.getText().equals("")) {
+				B7.setEnabled(false);
+			} if (B8.getText().equals("")) {
+				B8.setEnabled(false);
+			} if (B9.getText().equals("")) {
+				B9.setEnabled(false);
+			}
+		}
+		
 
 	}
 
@@ -524,7 +446,6 @@ public class Client extends JPanel implements ActionListener {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.setResizable(true);
-		// playGame();
 	}
 
 }
