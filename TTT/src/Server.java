@@ -16,7 +16,7 @@ public class Server implements Runnable {
 
 	static List<Server> connections = new ArrayList<Server>();
 
-	String[] gameBoard = { ".", ".", ".", ".", ".", ".", ".", ".", "." };
+	String[] gameBoard = { null, null, null, null,null, null, null, null,null };
 	char X = 'X';
 	char O = 'O';
 
@@ -36,8 +36,16 @@ public class Server implements Runnable {
 				|| (gameBoard[2] != null && gameBoard[2] == gameBoard[4] && gameBoard[2] == gameBoard[6])) {
 			return true;
 		}
-
 		return false;
+	}
+	
+	public boolean tiedGame() {
+		for (int i = 0; i < gameBoard.length; i++) {
+			if (gameBoard[i] == null) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public void run() {
@@ -77,26 +85,50 @@ public class Server implements Runnable {
 		        	System.out.println("Starting round");
 					String whosTurn = "";
 					String buttonPressed = chatInput.substring(0, 2);
-//					int buttonNumber = Integer.parseInt(chatInput.substring(1,2));
-					
-//					gameBoard[buttonNumber] = whosTurn;
-					
-//					output.writeUTF(chatInput);
-//					output.flush();
+					int buttonNumber = Integer.parseInt(chatInput.substring(1,2));
+
 					System.out.println("received from " + threadName + ": " + chatInput);
 					
 					if (threadName.contains("Player 1")) {
 						whosTurn = "O";
+						gameBoard[buttonNumber-1] = whosTurn;
+						
+						if(gameOver()){
+							output.writeUTF("Game over: Player X wins!!");
+							output.flush();
+							break;
+						}
+						if(tiedGame()){
+							output.writeUTF("Cat's Game!");
+							output.flush();
+							break;
+						}
+						
 						connections.get(1).output.writeUTF("X " + chatInput + " " +  whosTurn + " true");
 						connections.get(1).output.flush();
 						System.out.println("Sending player 2 the info\n ");
 					} else if (threadName.contains("Player 2")) {
 						whosTurn = "X";
+						gameBoard[buttonNumber-1] = whosTurn;
+						
+						if(gameOver()){
+							output.writeUTF("Game over: Player O wins!!");
+							output.flush();
+							break;
+						}
+						if(tiedGame()){
+							output.writeUTF("Cat's Game!");
+							output.flush();
+							break;
+						}
+						
+						
+						//chatat17
 						connections.get(0).output.writeUTF("O " + chatInput + " " + whosTurn + " true");
 						connections.get(0).output.flush();
 						System.out.println("Sending player 1 the info\n ");
 					}
-
+					
 
 				}
 
