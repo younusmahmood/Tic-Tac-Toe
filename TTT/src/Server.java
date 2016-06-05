@@ -13,8 +13,6 @@ public class Server implements Runnable {
 	private Socket threadSocket;
 	private ObjectOutputStream output;
 	private ObjectInputStream input;
-	boolean gameWon = false;
-	boolean catsGame = false;
 
 	static List<Server> connections = new ArrayList<Server>();
 
@@ -27,7 +25,7 @@ public class Server implements Runnable {
 		threadSocket = socket;
 	}
 
-	public void gameOver() {
+	public boolean gameOver(){
 		if ((gameBoard[0] != null && gameBoard[0] == gameBoard[1] && gameBoard[0] == gameBoard[2])
 				|| (gameBoard[3] != null && gameBoard[3] == gameBoard[4] && gameBoard[3] == gameBoard[5])
 				|| (gameBoard[6] != null && gameBoard[6] == gameBoard[7] && gameBoard[6] == gameBoard[8])
@@ -36,17 +34,12 @@ public class Server implements Runnable {
 				|| (gameBoard[2] != null && gameBoard[2] == gameBoard[5] && gameBoard[2] == gameBoard[8])
 				|| (gameBoard[0] != null && gameBoard[0] == gameBoard[4] && gameBoard[0] == gameBoard[8])
 				|| (gameBoard[2] != null && gameBoard[2] == gameBoard[4] && gameBoard[2] == gameBoard[6])) {
-			gameWon = true;
+			return true;
 		}
 
-		for (int i = 0; i < gameBoard.length; i++) {
-			if (gameBoard[i] != null) {
-
-			}
-		}
-
+		return false;
 	}
-
+	
 	public void run() {
 		try {
 			output = new ObjectOutputStream(threadSocket.getOutputStream());
@@ -72,42 +65,44 @@ public class Server implements Runnable {
 			}
 
 			output.flush();
-
+			
+			output.writeUTF("Begin!!!!!!!!");
+			output.flush();
+			
 			while (true) {
-
-				String chatInput = input.readUTF();
-
-				String whosTurn = chatInput.substring(3);
-				String buttonPressed = chatInput.substring(0, 2);
-				int buttonNumber = Integer.parseInt(chatInput.substring(1, 2));
-
-				gameBoard[buttonNumber] = whosTurn;
-
-				output.writeUTF("Set " + whosTurn + " "+ buttonPressed);
-				output.flush();
 				
-				//
-				// connections.get(0).output.writeUTF("Set " + whosTurn + " "
-				// + buttonPressed);
-				// connections.get(1).output.writeUTF("Set " + whosTurn + " "
-				// + buttonPressed);
-				// connections.get(0).output.flush();
-				// connections.get(1).output.flush();
+//				String chatInput = input.readUTF();
+				String chatInput;
+		        while ((chatInput = input.readUTF()) != null) {
+		        	System.out.println("Starting round");
+					String whosTurn = "";
+					String buttonPressed = chatInput.substring(0, 2);
+//					int buttonNumber = Integer.parseInt(chatInput.substring(1,2));
+					
+//					gameBoard[buttonNumber] = whosTurn;
+					
+//					output.writeUTF(chatInput);
+//					output.flush();
+					System.out.println("received from " + threadName + ": " + chatInput);
+					
+					if (threadName.contains("Player 1")) {
+						whosTurn = "O";
+						connections.get(1).output.writeUTF("X " + chatInput + " " +  whosTurn + " true");
+						connections.get(1).output.flush();
+						System.out.println("Sending player 2 the info\n ");
+					} else if (threadName.contains("Player 2")) {
+						whosTurn = "X";
+						connections.get(0).output.writeUTF("O " + chatInput + " " + whosTurn + " true");
+						connections.get(0).output.flush();
+						System.out.println("Sending player 1 the info\n ");
+					}
 
-//				if (threadName.contains("Player 1")) {
-//
-//					connections.get(1).output.writeUTF("Set " + whosTurn + " "
-//							+ buttonPressed);
-//					connections.get(1).output.flush();
-//					System.out.println("Sending player 2 the info\n ");
-//				} else if (threadName.contains("Player 2")) {
-//					connections.get(0).output.writeUTF("Set " + whosTurn + " "
-//							+ buttonPressed);
-//					connections.get(0).output.flush();
-//					System.out.println("Sending player 1 role\n ");
-//				}
 
-			}
+				}
+
+		        }
+
+
 
 		} catch (IOException exception) {
 			System.out.println("Uh oh, error: " + exception);
@@ -130,8 +125,7 @@ public class Server implements Runnable {
 				ip = remote_client.getInetAddress();
 				System.out.println(ip + " has connected!");
 
-				Server clientThread = new Server(remote_client, ("Player " + x
-						+ " (connected at: " + ip + ")"));
+				Server clientThread = new Server(remote_client, ("Player " + x + " (connected at: " + ip + ")"));
 				x++;
 
 				clientThread.start();
@@ -148,7 +142,7 @@ public class Server implements Runnable {
 			e.printStackTrace();
 		}
 
-	}
+	} 
 
 	private void start() {
 		System.out.println("Starting " + threadName);
