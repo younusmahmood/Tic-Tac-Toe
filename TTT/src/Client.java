@@ -1,9 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.EOFException;
@@ -11,16 +9,20 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Timer;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 @SuppressWarnings("serial")
 public class Client extends JPanel implements ActionListener {
 
+	Timer timer;
 	private boolean readyToPlay = false;
 	private static String whosTurn = "X"; // indicate who's turn it is
 
@@ -43,9 +45,7 @@ public class Client extends JPanel implements ActionListener {
 	private JButton tipBtn = new JButton("Tip");
 	private JButton quitBtn = new JButton("Quit");
 
-
 	private JTextArea playerRole = new JTextArea();
-	private JTextArea playerScore = new JTextArea();
 	private JButton B1 = new JButton("");
 	private JButton B2 = new JButton("");
 	private JButton B3 = new JButton("");
@@ -55,16 +55,37 @@ public class Client extends JPanel implements ActionListener {
 	private JButton B7 = new JButton("");
 	private JButton B8 = new JButton("");
 	private JButton B9 = new JButton("");
-	
 
+//	JList<Button> btnList = new JList<Button>();
+	List<JButton> btnList = new ArrayList<JButton>();
+	
 	public Client() {
 
 		// setting up layout
 		JPanel panel = new JPanel(new GridLayout(4, 3));
+		
+		btnList.add(B1);
+		btnList.add(B2);
+		btnList.add(B3);
+		btnList.add(B4);
+		btnList.add(B5);
+		btnList.add(B6);
+		btnList.add(B7);
+		btnList.add(B8);
+		btnList.add(B9);
+		
+		B1.setName("B1");
+		B2.setName("B2");
+		B3.setName("B3");
+		B4.setName("B4");
+		B5.setName("B5");
+		B6.setName("B6");
+		B7.setName("B7");
+		B8.setName("B8");
+		B9.setName("B9");
+		
 		panel.add(connectBtn);
 		panel.add(playerRole);
-		panel.add(playerScore);
-
 		panel.add(B1);
 		panel.add(B2);
 		panel.add(B3);
@@ -78,7 +99,7 @@ public class Client extends JPanel implements ActionListener {
 		panel.add(helpBtn);
 		panel.add(quitBtn);
 		panel.add(tipBtn);
-
+		
 		quitBtn.setBackground(Color.BLACK);
 		quitBtn.setOpaque(true);
 		helpBtn.setBackground(Color.BLACK);
@@ -86,19 +107,20 @@ public class Client extends JPanel implements ActionListener {
 		tipBtn.setBackground(Color.BLACK);
 		tipBtn.setOpaque(true);
 		
+		
 		setLayout(new BorderLayout());
 		add(panel, BorderLayout.CENTER);
 		add(playerRole, BorderLayout.SOUTH);
 		add(connectBtn, BorderLayout.NORTH);
-		add(playerScore, BorderLayout.WEST);
-		
 
 		playerRole.setPreferredSize(new Dimension(300, 75));
 		playerRole.setEditable(false);
 		connectBtn.setPreferredSize(new Dimension(300, 30));
-		
 
 		connectBtn.addActionListener(this);
+		helpBtn.addActionListener(this);
+		quitBtn.addActionListener(this);
+		tipBtn.addActionListener(this);
 		B1.addActionListener(this);
 		B2.addActionListener(this);
 		B3.addActionListener(this);
@@ -233,13 +255,15 @@ public class Client extends JPanel implements ActionListener {
 		        			oScore++;
 		        		}
 		        		
-		        		playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
+		        		//playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
 		        		
 		        	}
 		        	
 		        	if(chatInput.startsWith("Cat's")){
-		        		playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
+		        		//playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
 		        	}
+		        	
+		        	
 		        	
 		        	if (chatInput.contains(" ")) {
 		        		serverCommands = chatInput.split(" ");
@@ -258,12 +282,21 @@ public class Client extends JPanel implements ActionListener {
 		        			updateBoard(serverCommands[1], serverCommands[0]);
 		        			commandReceived = false;		        			
 
-		        			playerRole.setText("Your move :)");
+		        			int timer = 15;
 		        			enableButtons();
 							while (buttonPressed.equals("")) {
-								Thread.sleep(2000);
+								if (timer == 0) {
+									playerRole.setText("Time's up!");
+									disableButtons();
+									automateMove("X");
+									break;
+								}
+								playerRole.setText("Your move :)\nTimer: " + timer);
+								Thread.sleep(1000);
+								timer--;
 							}
-//							while (buttonPressed.equals(""));
+							System.out.println("here");
+							while (buttonPressed.equals(""));
 							System.out.println(buttonPressed +" Pressed! Sending to Server.");
 							output.writeUTF(buttonPressed);
 							output.flush();
@@ -292,10 +325,18 @@ public class Client extends JPanel implements ActionListener {
 		        			updateBoard(serverCommands[1], serverCommands[0]);
 		        			commandReceived = false;		        			
 
-		        			playerRole.setText("Your move :)");
+		        			int timer = 15;
 		        			enableButtons();
 							while (buttonPressed.equals("")) {
-								Thread.sleep(2000);
+								if (timer == 0) {
+									playerRole.setText("Time's up!");
+									disableButtons();
+									automateMove("O");
+									break;
+								}
+								playerRole.setText("Your move :)\nTimer: " + timer);
+								Thread.sleep(1000);
+								timer--;
 							}
 //							while (buttonPressed.equals(""));
 							System.out.println(buttonPressed +" Pressed! Sending to Server.");
@@ -382,14 +423,30 @@ public class Client extends JPanel implements ActionListener {
 
 		}
 		
-		private boolean playAgain(String winner) {
-			int response = JOptionPane.showConfirmDialog(frame,
-					"The winner is Player " + winner + "!!!!", "Want to rematch?",
-					JOptionPane.YES_NO_OPTION);
-			frame.dispose();
-			return response == JOptionPane.YES_OPTION;
+		/**
+		 * automate a move if the player takes too long
+		 */
+		public void automateMove(String setTextTo) {
+			
+			Random rand = new Random();
+			int i; 
+			boolean done = false;
+			
+			// massive brain fart -_- can't think straight rn tbh
+			while (!done) {
+				i = rand.nextInt(10);
+				if (btnList.get(i).getText().equals("")) {
+					btnList.get(i).setText(setTextTo);
+//					System.out.println("Pressed: " + btnList.get(i).getName());
+					buttonPressed = btnList.get(i).getName();
+					done = true;
+				}
+			}
 		}
 		
+		/**
+		 * enable/disable buttons depending on who's turn
+		 */
 		public void enableButtons() {			
 			if (B1.getText().equals("")) {
 				B1.setEnabled(true);
@@ -437,7 +494,6 @@ public class Client extends JPanel implements ActionListener {
 
 	}
 
-
 	public static void main(String[] args) throws Exception {
 		frame = new JFrame("Tic Tac Toe Online");
 		frame.add(new Client());
@@ -446,6 +502,7 @@ public class Client extends JPanel implements ActionListener {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.setResizable(true);
+		// playGame();
 	}
 
 }
