@@ -88,7 +88,7 @@ public class Server implements Runnable {
 					int buttonNumber = Integer.parseInt(chatInput.substring(1,2));
 
 					System.out.println("received from " + threadName + ": " + chatInput);
-					
+
 					if (threadName.contains("Player 1")) {
 						whosTurn = "O";
 						gameBoard[buttonNumber-1] = whosTurn;
@@ -96,12 +96,12 @@ public class Server implements Runnable {
 						if(gameOver()){
 							output.writeUTF("Game over: Player X wins!!");
 							output.flush();
-							break;
+							//break;
 						}
 						if(tiedGame()){
 							output.writeUTF("Cat's Game!");
 							output.flush();
-							break;
+							//break;
 						}
 						
 						connections.get(1).output.writeUTF("X " + chatInput + " " +  whosTurn + " true");
@@ -114,12 +114,12 @@ public class Server implements Runnable {
 						if(gameOver()){
 							output.writeUTF("Game over: Player O wins!!");
 							output.flush();
-							break;
+							//break;
 						}
 						if(tiedGame()){
 							output.writeUTF("Cat's Game!");
 							output.flush();
-							break;
+							//break;
 						}
 						
 						
