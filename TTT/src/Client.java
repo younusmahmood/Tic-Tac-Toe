@@ -16,6 +16,7 @@ import java.util.Timer;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
@@ -32,6 +33,7 @@ public class Client extends JPanel implements ActionListener {
 	String winner;
 	int xScore;
 	int oScore;
+	String message ="";
 
 	String name;
 	static String buttonPressed = ""; // 
@@ -141,11 +143,14 @@ public class Client extends JPanel implements ActionListener {
 		B8.setEnabled(false);
 		B9.setEnabled(false);
 
+
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 		playerRole.setText("");
+
+		tipBtn.setText("Tip");
 		if (source == connectBtn) {
 			try {
 				connectBtn.setEnabled(false);
@@ -158,6 +163,43 @@ public class Client extends JPanel implements ActionListener {
 				System.out.println("ERROR: " + ex.getMessage());
 			}
 		}
+		
+		if(source == helpBtn){
+			JOptionPane.showMessageDialog(
+							null,
+							"The object of Tic Tac Toe is to get three in a row.\n "
+									+ "You play on a three by three game board. The first player is known as X\n "
+									+ "and the second is O. Players alternate placing Xs and Os on the game board\n "
+									+ "until either oppent has three in a row or all nine squares are filled.\n",
+							null, 1);
+		}
+		
+		if(source == tipBtn){
+			if(B1.getText() == ""){
+				tipBtn.setText("1");
+			}else if(B5.getText() == ""){
+				tipBtn.setText("5");
+			}else if(B7.getText() == ""){
+				tipBtn.setText("7");
+			}else if(B4.getText() == ""){
+				tipBtn.setText("4");
+			}else if(B6.getText() == ""){
+				tipBtn.setText("6");
+			}else if(B2.getText() == ""){
+				tipBtn.setText("2");
+			}else if(B8.getText() == ""){
+				tipBtn.setText("8");
+			}else if(B9.getText() == ""){
+				tipBtn.setText("9");
+			}else if(B3.getText() == ""){
+				tipBtn.setText("3");
+			}	
+		}
+		
+		if(source == quitBtn){
+				System.exit(0);
+		}
+		
 
 		if (source == B1) {
 			buttonPressed = "B1";
@@ -246,7 +288,6 @@ public class Client extends JPanel implements ActionListener {
 				String chatInput;
 				String[] serverCommands = {"F", "F"};
 		        while ((chatInput = input.readUTF()) != null) {
-		        	
 		        	if(chatInput.startsWith("Game")){
 		        		winner  = chatInput.substring(18,19);
 		        		if(winner.equals("X")){
@@ -255,12 +296,10 @@ public class Client extends JPanel implements ActionListener {
 		        			oScore++;
 		        		}
 		        		
-		        		//playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
-		        		
 		        	}
 		        	
 		        	if(chatInput.startsWith("Cat's")){
-		        		//playerScore.setText("Player X : " + xScore + " " + "Player O : " + oScore);
+		        		//Reset Board
 		        	}
 		        	
 		        	
@@ -291,7 +330,7 @@ public class Client extends JPanel implements ActionListener {
 									automateMove("X");
 									break;
 								}
-								playerRole.setText("Your move :)\nTimer: " + timer);
+								playerRole.setText("Your move :)\nTimer: " + timer + "\nPlayer X: " + xScore + "\nPlayer O: " + oScore);
 								Thread.sleep(1000);
 								timer--;
 							}
@@ -334,7 +373,7 @@ public class Client extends JPanel implements ActionListener {
 									automateMove("O");
 									break;
 								}
-								playerRole.setText("Your move :)\nTimer: " + timer);
+								playerRole.setText("Your move :)\nTimer: " + timer + "\nPlayer X: " + xScore + "\nPlayer O: " + oScore);
 								Thread.sleep(1000);
 								timer--;
 							}
@@ -444,6 +483,8 @@ public class Client extends JPanel implements ActionListener {
 			}
 		}
 		
+		
+		
 		/**
 		 * enable/disable buttons depending on who's turn
 		 */
@@ -493,6 +534,7 @@ public class Client extends JPanel implements ActionListener {
 		
 
 	}
+	
 
 	public static void main(String[] args) throws Exception {
 		frame = new JFrame("Tic Tac Toe Online");
