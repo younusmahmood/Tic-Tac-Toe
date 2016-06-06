@@ -292,14 +292,17 @@ public class Client extends JPanel implements ActionListener {
 		        		winner  = chatInput.substring(18,19);
 		        		if(winner.equals("X")){
 		        			xScore++;
+		        			whosTurn.equals("X");
 		        		}else if(winner.equals("O")){
 		        			oScore++;
+		        			whosTurn.equals("O");
 		        		}
-		        		
+		        		message = "reset";
 		        	}
 		        	
 		        	if(chatInput.startsWith("Cat's")){
-		        		//Reset Board
+		        		reset();
+		        		message = "reset";
 		        	}
 		        	
 		        	
@@ -318,6 +321,10 @@ public class Client extends JPanel implements ActionListener {
 		        	if (whosTurn.equals("X")) {
 		        		
 		        		if (ImPlayer1) { // its my turn: need to make a move, send to server, wait for my turn again
+		        			if(message.equals("reset")){
+		        				reset();
+		        			}
+
 		        			updateBoard(serverCommands[1], serverCommands[0]);
 		        			commandReceived = false;		        			
 
@@ -344,6 +351,9 @@ public class Client extends JPanel implements ActionListener {
 							Thread.sleep(2000);
 		        		}
 		        		else if (ImPlayer2 && commandReceived) { // not my turn: need to listen for command from server, update my board, then make a move? 
+		        			if(message.equals("reset")){
+		        				reset();
+		        			}
 		        			System.out.println("Updating board. Setting " + serverCommands[1] + " to " + serverCommands[0]);
 		        			updateBoard(serverCommands[1], serverCommands[0]);
 		        			commandReceived = false;		        			
@@ -356,11 +366,17 @@ public class Client extends JPanel implements ActionListener {
 		        	else if (whosTurn.equals("O")) {
 		        		
 		        		if (ImPlayer1) { // not my turn: need to listen for command from server, update my board, then make a move?
+		        			if(message.equals("reset")){
+		        				reset();
+		        			}
 		        			System.out.println("Updating board");
 		        			updateBoard(serverCommands[1], serverCommands[0]);
 		        			commandReceived = false;		        			
 		        		}
 		        		else if (ImPlayer2) { // its my turn: need to make a move, send to server, wait for my turn again
+		        			if(message.equals("reset")){
+		        				reset();
+		        			}
 		        			updateBoard(serverCommands[1], serverCommands[0]);
 		        			commandReceived = false;		        			
 
@@ -530,6 +546,20 @@ public class Client extends JPanel implements ActionListener {
 			} if (B9.getText().equals("")) {
 				B9.setEnabled(false);
 			}
+		}
+		
+		public void reset(){
+			B1.setText("");
+			B2.setText("");
+			B3.setText("");
+			B4.setText("");
+			B5.setText("");
+			B6.setText("");
+			B7.setText("");
+			B8.setText("");
+			B9.setText("");
+			message.equals("");
+			
 		}
 		
 
