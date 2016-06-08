@@ -24,6 +24,7 @@ public class Server implements Runnable {
 	String[] gameBoard = { null, null, null, null,null, null, null, null,null };
 	char X = 'X';
 	char O = 'O';
+	static int moveCounter = 1;
 
 	public Server(Socket socket, String name) {
 		threadName = name;
@@ -119,16 +120,17 @@ public class Server implements Runnable {
 								gameBoard[i] = null;
 							}
 						}
-						if(tiedGame()){
+						
+						
+						if(moveCounter == 9 && !gameOver()){ // Checks to se if tied game
 							output.writeUTF("Tied");
 							output.flush();
-							for(int i = 0; i < gameBoard.length; i++){
-								gameBoard[i] = null;
-							}
 						}
 						
 						connections.get(1).output.writeUTF("X " + chatInput + " " +  whosTurn + " true"); //Sends information to specific client, in this case to the second client.
 						connections.get(1).output.flush();
+						moveCounter++;
+						//System.out.println("Move Counter: " + moveCounter);
 						System.out.println("Sending player 2 the info\n ");
 					} else if (threadName.contains("Player 2")) {
 						whosTurn = "X";
@@ -141,18 +143,18 @@ public class Server implements Runnable {
 								gameBoard[i] = null;
 							}
 						}
-						if(tiedGame()){
-							output.writeUTF("Tied");
-							output.flush();
-							for(int i = 0; i < gameBoard.length; i++){
-								gameBoard[i] = null;
+
+							if(moveCounter == 9 && !gameOver()){
+								output.writeUTF("Tied");
+								output.flush();
 							}
-							
-						}
 						
 						connections.get(0).output.writeUTF("O " + chatInput + " " + whosTurn + " true"); //Like above, this sends messages to the first client telling it what to do
 						connections.get(0).output.flush();
 						System.out.println("Sending player 1 the info\n ");
+						moveCounter++;
+
+						//System.out.println("Move Counter: " + moveCounter);
 					}
 		       	}
 
