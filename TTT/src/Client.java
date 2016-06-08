@@ -309,6 +309,7 @@ public class Client extends JPanel implements ActionListener {
 					String chatInput;
 					String[] serverCommands = { "F", "F" };
 					while ((chatInput = input.readUTF()) != null) {
+						
 						if (chatInput.equals("Game over: Player X wins!!")) {
 							winner = chatInput.substring(18, 19);
 							xScore += 1;
@@ -397,7 +398,8 @@ public class Client extends JPanel implements ActionListener {
 
 						else if (whosTurn.equals("O")) {
 							if (ImPlayer1) { // not my turn: need to listen for command from server, update my board, then make a move
-
+								
+								
 								System.out.println("Updating board");
 								updateBoard(serverCommands[1],
 										serverCommands[0]);
