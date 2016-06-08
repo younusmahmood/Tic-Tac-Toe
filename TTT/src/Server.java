@@ -1,8 +1,12 @@
+/*
+ * Welcome To Tic-Tac-Toe!
+ * Author: Younus Mahmood
+ * Server.Java
+ */
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
-
-import javax.swing.*;
 
 public class Server implements Runnable {
 
@@ -16,6 +20,7 @@ public class Server implements Runnable {
 
 	static List<Server> connections = new ArrayList<Server>();
 
+	// Initializes server side game board to keep track of all pieces being placed
 	String[] gameBoard = { null, null, null, null,null, null, null, null,null };
 	char X = 'X';
 	char O = 'O';
@@ -25,6 +30,10 @@ public class Server implements Runnable {
 		threadSocket = socket;
 	}
 
+	/**
+	 * Checks to see if game is over
+	 * Runs cases to see if any of the gameBoard items match
+	 */
 	public boolean gameOver(){
 		if ((gameBoard[0] != null && gameBoard[0] == gameBoard[1] && gameBoard[0] == gameBoard[2])
 				|| (gameBoard[3] != null && gameBoard[3] == gameBoard[4] && gameBoard[3] == gameBoard[5])
@@ -39,6 +48,9 @@ public class Server implements Runnable {
 		return false;
 	}
 	
+	/**
+	 * Checks to see if its a tie game aka Cats game
+	 */
 	public boolean tiedGame() {
 		for (int i = 0; i < gameBoard.length; i++) {
 			if (gameBoard[i] == null) {
@@ -48,6 +60,15 @@ public class Server implements Runnable {
 		return true;
 	}
 	
+	
+	/*
+	 * This is where we start to receive and send information to the client
+	 * Based on what moves the client makes, the server takes them
+	 * places them on the server side gameBoard(defined above), checks cases
+	 * to see if game is over and then decides what to send to the clients for them
+	 * to make their moves.
+	 * 
+	 */
 	public void run() {
 		try {
 			output = new ObjectOutputStream(threadSocket.getOutputStream());
@@ -78,8 +99,6 @@ public class Server implements Runnable {
 			output.flush();
 			
 			while (true) {
-				
-//				String chatInput = input.readUTF();
 				String chatInput;
 		        while ((chatInput = input.readUTF()) != null) {
 		        	System.out.println("Starting round");
@@ -89,22 +108,26 @@ public class Server implements Runnable {
 
 					System.out.println("received from " + threadName + ": " + chatInput);
 
-					if (threadName.contains("Player 1")) {
+					if (threadName.contains("Player 1")) { //This helps in differentiating which client we're dealing with when making decisions
 						whosTurn = "O";
-						gameBoard[buttonNumber-1] = whosTurn;
+						gameBoard[buttonNumber-1] = whosTurn; //Takes the string value of "whosTurn" and substitutes that in for the null value that is on the index of the button number
 						
-						if(gameOver()){
+						if(gameOver()){ //Calls gameOver method to see if any cases match
 							output.writeUTF("Game over: Player X wins!!");
 							output.flush();
-							//break;
+							for(int i = 0; i < gameBoard.length; i++){ //Resets server side gameboard
+								gameBoard[i] = null;
+							}
 						}
 						if(tiedGame()){
-							output.writeUTF("Cat's Game!");
+							output.writeUTF("Tied");
 							output.flush();
-							//break;
+							for(int i = 0; i < gameBoard.length; i++){
+								gameBoard[i] = null;
+							}
 						}
 						
-						connections.get(1).output.writeUTF("X " + chatInput + " " +  whosTurn + " true");
+						connections.get(1).output.writeUTF("X " + chatInput + " " +  whosTurn + " true"); //Sends information to specific client, in this case to the second client.
 						connections.get(1).output.flush();
 						System.out.println("Sending player 2 the info\n ");
 					} else if (threadName.contains("Player 2")) {
@@ -114,27 +137,26 @@ public class Server implements Runnable {
 						if(gameOver()){
 							output.writeUTF("Game over: Player O wins!!");
 							output.flush();
-							//break;
+							for(int i = 0; i < gameBoard.length; i++){
+								gameBoard[i] = null;
+							}
 						}
 						if(tiedGame()){
-							output.writeUTF("Cat's Game!");
+							output.writeUTF("Tied");
 							output.flush();
-							//break;
+							for(int i = 0; i < gameBoard.length; i++){
+								gameBoard[i] = null;
+							}
+							
 						}
 						
-						
-						//chatat17
-						connections.get(0).output.writeUTF("O " + chatInput + " " + whosTurn + " true");
+						connections.get(0).output.writeUTF("O " + chatInput + " " + whosTurn + " true"); //Like above, this sends messages to the first client telling it what to do
 						connections.get(0).output.flush();
 						System.out.println("Sending player 1 the info\n ");
 					}
-					
+		       	}
 
-				}
-
-		        }
-
-
+		      }
 
 		} catch (IOException exception) {
 			System.out.println("Uh oh, error: " + exception);
@@ -149,7 +171,7 @@ public class Server implements Runnable {
 
 			InetAddress ip = null;
 			int x = 1;
-			// loop that accepts and starts thread for each connection
+			// Loop that accepts and starts thread for each connection
 			while (connections.size() != 2) {
 
 				// Wait for a client to connect, then accept that connection
